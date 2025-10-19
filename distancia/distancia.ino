@@ -1,7 +1,7 @@
 #include <Ultrasonic.h>
 
-int sensorTrigger = 12;
-int sensorEcho = 13;
+#define sensorTrigger 12;
+#define sensorEcho 13;
 
 //Inicializa o sensor
 Ultrasonic ultrasonic(sensorTrigger, sensorEcho);

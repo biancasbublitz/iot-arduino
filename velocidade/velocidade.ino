@@ -1,4 +1,4 @@
-int sensorPin = 21; //Pino D0 do sensor conectado na porta 21 do Arduino
+#define sensorPin 21; //Pino D0 do sensor conectado na porta 21 do Arduino
 int readingSensor;
 int count = 0;
 
@@ -10,7 +10,7 @@ void setup() {
 void loop() {
   readingSensor = digitalRead(sensorPin);
 
-  if ( readingSensor == 1) {
+  if (readingSensor == 1) {
     count++; 
 
     Serial.print("Numero de deteccoes: ");
