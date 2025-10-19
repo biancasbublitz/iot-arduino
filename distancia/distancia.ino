@@ -1,21 +1,28 @@
-int sensorPin = 21; //Pino D0 do sensor conectado na porta 21 do Arduino
-int readingSensor;
-int count = 0;
+#include <Ultrasonic.h>
+
+int sensorTrigger = 12;
+int sensorEcho = 13;
+
+//Inicializa o sensor
+Ultrasonic ultrasonic(sensorTrigger, sensorEcho);
 
 void setup() {
   Serial.begin(9600);
-  pinMode(sensorPin, INPUT);
 }
 
 void loop() {
-  readingSensor = digitalRead(sensorPin);
+  //Le as informacoes do sensor em cm e pol
+  float cmMsec, inMsec;
+  long microsec = ultrasonic.timing();
 
-  if ( readingSensor == 1) {
-    count++; 
+  cmMsec = ultrasonic.convert(microsec, Ultrasonic::CM);
+  inMsec = ultrasonic.convert(microsec, Ultrasonic::IN);
 
-    Serial.print("Numero de deteccoes: ");
-    Serial.println(count);
+  Serial.print("Distancia em cm: ");
+  Serial.print(cmMsec);
 
-    delay(500);
-  }
+  Serial.print("Distancia em pol: ");
+  Serial.println(inMsec);
+
+  delay(1000);
 }
