@@ -30,13 +30,6 @@ Altere o texto entre aspas (`"..."`) para o nome do dispositivo que deseja testa
 
 ---
 
-## ⚙️ 2️⃣ Pinagem de Conexão por Dispositivo
-
-Abaixo estão os pinos do **ESP32** utilizados em cada modo.\
-Sempre conecte o **GND comum** entre o ESP32 e os sensores.
-
----
-
 ### 🌈 **1. Sensor de Cor – APDS9960**
 
 | Pino do sensor | ESP32  | Observação      |
@@ -150,11 +143,6 @@ Sempre conecte o **GND comum** entre o ESP32 e os sensores.
 | Resistor 4.7kΩ | Entre **GPIO22 e 3V3** | Pull-up obrigatório ✅ |
 
 >
-
----
-
-|   |   |   |
-| - | - | - |
 
 ---
 
