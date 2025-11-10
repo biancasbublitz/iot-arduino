@@ -10,8 +10,8 @@
 #include <DallasTemperature.h>   // Biblioteca Dallas para DS18B20
 
 // ======== DEFINIÇÕES GERAIS ========
-#define SENSOR_MODE "temperatura"
-// troque entre: "cor", "distancia", "gestos", "joystick", "teclado", "umidade", "velocidade", "rele", "temperatura"
+#define SENSOR_MODE "distancia"
+// troque entre: "cor", "distancia", "gestos", "joystick", "teclado", "umidade", "velocidade", "rele", "temperatura", "vibracao"
 
 // ======== SENSOR: COR e GESTOS (APDS9960) ========
 #define SDA_PIN 21
@@ -60,6 +60,9 @@ int readingSensor, countDeteccao = 0;
 // ======== ATUADOR: RELÉ ========
 #define pinRele 17  // pino de controle do relé
 
+// ======== ATUADOR: VIBRAÇÃO ========
+#define pinVibracao 25  // pino de controle do relé
+
 // ======== SENSOR: TEMPERATURA DS18B20 ========
 #define ONE_WIRE_BUS 22
 OneWire oneWire(ONE_WIRE_BUS);
@@ -94,6 +97,10 @@ void setup() {
     pinMode(pinRele, OUTPUT);
     digitalWrite(pinRele, HIGH); // desligado inicialmente
   }
+  else if (strcmp(SENSOR_MODE, "vibracao") == 0) {
+    pinMode(pinVibracao, OUTPUT);
+    digitalWrite(pinVibracao, HIGH); // desligado inicialmente
+  }
   else if (strcmp(SENSOR_MODE, "temperatura") == 0) {
     sensors.begin();
   }
@@ -112,10 +119,11 @@ void loop() {
   else if (strcmp(SENSOR_MODE, "umidade") == 0) lerDHT();
   else if (strcmp(SENSOR_MODE, "velocidade") == 0) lerVelocidade();
   else if (strcmp(SENSOR_MODE, "rele") == 0) controlarRele();
+  else if (strcmp(SENSOR_MODE, "vibracao") == 0) controlarVibracao();
   else if (strcmp(SENSOR_MODE, "temperatura") == 0) lerTemperatura();
   else Serial.println("Sensor não reconhecido.");
 
-  delay(1000);
+  //delay(1000);
 }
 
 // ======== FUNÇÕES DE LEITURA ========
@@ -196,6 +204,16 @@ void controlarRele() {
   delay(9000);
   digitalWrite(pinRele, HIGH); // Desliga
   Serial.println("💡 Relé desligado");
+  delay(9000);
+}
+
+// VIBRAÇÃO
+void controlarVibracao() {
+  digitalWrite(pinVibracao, LOW);  // Liga
+  Serial.println("💡 Vibração desligada");
+  delay(9000);
+  digitalWrite(pinVibracao, HIGH); // Desliga
+  Serial.println("💡 Vibração ligada");
   delay(9000);
 }
 
