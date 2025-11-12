@@ -3,7 +3,7 @@
 // ======== BIBLIOTECAS ========
 #include <Wire.h>
 #include <SparkFun_APDS9960.h>   // Sensor de cor e gestos
-#include <HCSR04.h>              // Sensor de distância
+#include <Ultrasonic.h>          // Sensor de distância (atualizado)
 #include <Keypad.h>              // Teclado matricial
 #include <DHT.h>                 // Sensor de umidade/temperatura DHT
 #include <OneWire.h>             // Sensor DS18B20
@@ -22,10 +22,10 @@ uint16_t ambient_light = 0, red_light = 0, green_light = 0, blue_light = 0;
 int isr_flag = 0;
 void IRAM_ATTR interruptRoutine() { isr_flag = 1; }
 
-// ======== SENSOR: DISTÂNCIA (HC-SR04) ========
+// ======== SENSOR: DISTÂNCIA (Ultrasonic) ========
 #define sensorTrigger 12
 #define sensorEcho 13
-HCSR04 ultrasonic(sensorTrigger, sensorEcho);
+Ultrasonic ultrasonic(sensorTrigger, sensorEcho);
 
 // ======== SENSOR: JOYSTICK ========
 #define sensorPinX 25
@@ -159,8 +159,11 @@ void lerGestos() {
 }
 
 void lerDistancia() {
-  float distancia = ultrasonic.dist(); // retorna distância em cm
-  Serial.printf("📏 Distância: %.2f cm\n", distancia);
+  long microsec = ultrasonic.timing();
+  float cmMsec = ultrasonic.convert(microsec, Ultrasonic::CM);
+  float inMsec = ultrasonic.convert(microsec, Ultrasonic::IN);
+
+  Serial.printf("📏 Distância: %.2f cm | %.2f pol\n", cmMsec, inMsec);
 }
 
 void lerJoystick() {
@@ -207,7 +210,7 @@ void controlarRele() {
   delay(9000);
 }
 
-// VIBRAÇÃO
+// 💭 VIBRAÇÃO
 void controlarVibracao() {
   digitalWrite(pinVibracao, LOW);  // Liga
   Serial.println("💡 Vibração desligada");
