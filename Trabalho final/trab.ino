@@ -10,9 +10,9 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 
-#define LED_VERDE  5
-#define LED_AMARELO 18
-#define LED_VERMELHO 19
+#define LED_VERDE  15
+#define LED_AMARELO 13
+#define LED_VERMELHO 12
 
 bool portaEstaAberta = false;
 unsigned long portaAbertaDesde = 0;
@@ -20,8 +20,8 @@ unsigned long portaAbertaDesde = 0;
 
 
 // ======== CONFIG Wi-Fi + API ========
-const char* WIFI_SSID = "Wokwi-GUEST";
-const char* WIFI_PASS = "";
+const char* WIFI_SSID = "iot2022";
+const char* WIFI_PASS = "S3nhab0@";
 
 // 🔥 API PRINCIPAL
 String API_URL = "https://api-cogr.onrender.com/readings";
@@ -97,24 +97,24 @@ const char TECLAS[LINHAS][COLUNAS] = {
   {'7','8','9','C'},
   {'*','0','#','D'}
 };
-byte PIN_LINHAS[LINHAS] = {32, 33, 25, 26};
-byte PIN_COLUNAS[COLUNAS] = {27, 17, 12, 13};
+byte PIN_LINHAS[LINHAS] = {36, 37, 38, 39};
+byte PIN_COLUNAS[COLUNAS] = {12, 13, 15, 2};
 Keypad teclado = Keypad(makeKeymap(TECLAS), PIN_LINHAS, PIN_COLUNAS, LINHAS, COLUNAS);
 
 // ======== DHT22 ========
-#define DHTPIN 17
+#define DHTPIN 12
 #define DHTTYPE DHT22
 DHT dht(DHTPIN, DHTTYPE);
 
 // ======== VELOCIDADE ========
-#define sensorSpeedPin 21
+#define sensorSpeedPin 13
 int countDeteccao = 0;
 
 // ======== RELÉ ========
-#define pinRele 17
+#define pinRele 12
 
 // ======== VIBRAÇÃO ========
-#define pinVibracao 4
+#define pinVibracao 21
 
 // ======== TEMPERATURA DS18B20 ========
 #define ONE_WIRE_BUS 22
@@ -596,13 +596,6 @@ void loopESP4() {
 
   delay(1000);
 }
-
-
-
-
-
-
-
 
 
 
