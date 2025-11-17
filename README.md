@@ -162,8 +162,3 @@ Abaixo estão **TODAS as portas conferidas diretamente no seu código**.
 
 ---
 
-# 📘 4️⃣ Observações Importantes
-
-- O `SENSOR_MODE` controla qual sensor **ou modo de trabalho** está ativo.
-- Nos modos `esp1`, `esp2`, `esp3` e `esp4`, o ESP simula fluxos completos do sistema do trabalho.
-
