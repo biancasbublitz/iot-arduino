@@ -166,11 +166,4 @@ Abaixo estão **TODAS as portas conferidas diretamente no seu código**.
 
 - O `SENSOR_MODE` controla qual sensor **ou modo de trabalho** está ativo.
 - Nos modos `esp1`, `esp2`, `esp3` e `esp4`, o ESP simula fluxos completos do sistema do trabalho.
-- No Wokwi, o ultrassônico pode precisar da biblioteca `HCSR04.h`.
-- No hardware real, recomenda-se `Ultrasonic.h`.
 
----
-
-# ✅ Fim do Guia
-
-Se quiser, posso gerar também uma versão em **PDF**.
