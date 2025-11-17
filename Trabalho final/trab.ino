@@ -1,11 +1,11 @@
 #include <Arduino.h>
 
-// ======== BIBLIOTECAS ========
+// BIBLIOTECAS
 #include <Wire.h>
-#include <SparkFun_APDS9960.h>   // Sensor de cor e gestos
-#include <Keypad.h>              // Teclado matricial
-#include <DHT.h>                 // Sensor umidade/temp
-#include <OneWire.h>             // DS18B20
+#include <SparkFun_APDS9960.h>
+#include <Keypad.h>
+#include <DHT.h>
+#include <OneWire.h>
 #include <DallasTemperature.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
@@ -17,21 +17,16 @@
 bool portaEstaAberta = false;
 unsigned long portaAbertaDesde = 0;
 
+// CONFIG
+const char* WIFI_SSID = "AndroidAP";
+const char* WIFI_PASS = "renan123";
 
-
-// ======== CONFIG Wi-Fi + API ========
-const char* WIFI_SSID = "iot2022";
-const char* WIFI_PASS = "S3nhab0@";
-
-// 🔥 API PRINCIPAL
 String API_URL = "https://api-cogr.onrender.com/readings";
-
-// 🔥 API DE VALIDAÇÃO
 String API_VALIDATE = "https://api-cogr.onrender.com/auth/validate";
 String API_VALIDATE_TEMP = "https://api-cogr.onrender.com/auth/validate-temperature";
 
 
-// ======== COMPONENT IDs DO RENDER ========
+// COMPONENT IDs DO RENDER
 String ID_TEMP_DS18B20     = "99efc3b2-3ea5-4e41-8343-d237238cf5f1";
 String ID_APDS9960         = "9a790730-52f5-4dcd-8504-cd9236cd27a2";
 String ID_VELOCIDADE       = "fd5b3cbd-dc53-482f-b9cd-569600cd2db2";
@@ -41,8 +36,8 @@ String ID_SERVO            = "cac9f30e-243a-4feb-87ae-67c98f7c16da";
 String ID_JOYSTICK         = "10289229-43b3-4db1-9580-63b5b76e4465";
 String ID_TECLADO          = "9dc544ee-36bd-4a52-a69a-f4cf8cffe578";
 
-// ======== SELETOR DE MODO ========
-#define SENSOR_MODE "esp2"
+// SELETOR DE MODO 
+#define SENSOR_MODE "esp1"
 
 // ======== FUNÇÃO HTTP PARA RENDER ========
 void enviarParaAPI(String json) {
@@ -97,8 +92,8 @@ const char TECLAS[LINHAS][COLUNAS] = {
   {'7','8','9','C'},
   {'*','0','#','D'}
 };
-byte PIN_LINHAS[LINHAS] = {36, 37, 38, 39};
-byte PIN_COLUNAS[COLUNAS] = {12, 13, 15, 2};
+byte PIN_LINHAS[LINHAS] = {32, 33, 25, 26};
+byte PIN_COLUNAS[COLUNAS] = {2, 15, 13, 12};
 Keypad teclado = Keypad(makeKeymap(TECLAS), PIN_LINHAS, PIN_COLUNAS, LINHAS, COLUNAS);
 
 // ======== DHT22 ========
@@ -183,7 +178,7 @@ void setup() {
   delay(300);
 
   pinMode(pinVibracao, OUTPUT);
-  digitalWrite(pinVibracao, HIGH);
+  //digitalWrite(pinVibracao, HIGH);
 
   Serial.println("=== Sistema IoT ESP32 ===");
   WiFi.begin(WIFI_SSID, WIFI_PASS);
