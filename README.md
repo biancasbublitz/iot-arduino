@@ -1,164 +1,176 @@
 # 🧠 Guia de Utilização – Sistema Unificado de Sensores IoT (ESP32)
 
-IMPORTANTE: FAZER TESTE COM SENSOR DE CORES E GESTOS
-
-OBS: Talvez precise mudar a biblioteca do sensor de distância, faltou o Ultrasonic.h no wokwi
+Este projeto reúne múltiplos sensores e atuadores em um único código para ESP32, podendo alternar entre eles definindo o `SENSOR_MODE`.
 
 ---
 
 ## ⚙️ 1️⃣ Selecionando o Sensor/Atuador
 
-No início do código, há a linha:
+No início do código, altere:
 
 ```cpp
 #define SENSOR_MODE "..."
 ```
 
-Altere o texto entre aspas (`"..."`) para o nome do dispositivo que deseja testar:
+### 🔧 Valores possíveis:
 
-| Valor possível  | Dispositivo                          |
-| --------------- | ------------------------------------ |
-| `"cor"`         | Sensor de cor APDS9960               |
-| `"gestos"`      | Sensor de gestos APDS9960            |
-| `"distancia"`   | Sensor ultrassônico HC-SR04          |
-| `"joystick"`    | Módulo joystick analógico            |
-| `"teclado"`     | Teclado matricial 4x4                |
-| `"umidade"`     | Sensor DHT22 (umidade e temperatura) |
-| `"velocidade"`  | Sensor de detecção de rotações       |
-| `"rele"`        | Módulo relé                          |
-| `"temperatura"` | Sensor DS18B20                       |
-
----
-
-### 🌈 **1. Sensor de Cor – APDS9960**
-
-| Pino do sensor | ESP32  | Observação      |
-| -------------- | ------ | --------------- |
-| SDA            | GPIO21 | Comunicação I²C |
-| SCL            | GPIO22 | Comunicação I²C |
-| VCC            | 3V3    | Alimentação     |
-| GND            | GND    | Terra           |
-
->
+| Valor possível  | Comportamento / Dispositivo |
+| --------------- | --------------------------- |
+| `"cor"`         | Sensor de cor APDS9960      |
+| `"gestos"`      | Sensor de gestos APDS9960   |
+| `"distancia"`   | Sensor ultrassônico         |
+| `"joystick"`    | Joystick analógico          |
+| `"teclado"`     | Teclado matricial 4x4       |
+| `"umidade"`     | Sensor DHT22                |
+| `"velocidade"`  | Sensor de rotações          |
+| `"rele"`        | Módulo relé                 |
+| `"temperatura"` | Sensor DS18B20              |
 
 ---
 
-### ✋ **2. Sensor de Gestos – APDS9960**
+## 🧪 1.1 – Modos especiais de simulação do trabalho (ESP1, ESP2, ESP3, ESP4)
 
-| Pino do sensor | ESP32  | Observação                       |
-| -------------- | ------ | -------------------------------- |
-| SDA            | GPIO21 | I²C                              |
-| SCL            | GPIO22 | I²C                              |
-| INT            | GPIO33 | Interrupção para detectar gestos |
-| VCC            | 3V3    | Alimentação                      |
-| GND            | GND    | Terra                            |
+Além dos sensores individuais, você também pode configurar:
 
->
+| Modo    | Função simulada                                                                 |
+| -------- | ---------------------------------------------------------------------------- |
+| `"esp1"` | Leitura do **teclado**, envio de senha e validação via API                   |
+| `"esp2"` | Controle do **relé** + leitura do **encoder** simulando abertura de porta     |
+| `"esp3"` | Leitura de **temperatura e umidade** (DHT22) + alerta de temperatura          |
+| `"esp4"` | Indicador de status com **LEDs** (verde, amarelo, vermelho) baseado na API    |
 
----
-
-### 🖯️ **3. Sensor Ultrassônico – HC-SR04**
-
-| Pino do sensor | ESP32  | Observação       |
-| -------------- | ------ | ---------------- |
-| TRIG           | GPIO12 | Pulso de saída   |
-| ECHO           | GPIO13 | Retorno de sinal |
-| VCC            | 5V     | Alimentação      |
-| GND            | GND    | Terra            |
-
->
+Esses modos são exigidos no trabalho e simulam fluxos reais do sistema.
 
 ---
 
-### 🎮 **4. Joystick Analógico**
+# 🔌 2️⃣ Ligações dos Sensores
 
-| Pino do módulo | ESP32  | Observação         |
-| -------------- | ------ | ------------------ |
-| VRx            | GPIO25 | Eixo X (analógico) |
-| VRy            | GPIO26 | Eixo Y (analógico) |
-| SW             | GPIO27 | Botão (digital)    |
-| VCC            | 3V3    | Alimentação        |
-| GND            | GND    | Terra              |
-
->
+Abaixo estão **TODAS as portas conferidas diretamente no seu código**.
 
 ---
 
-### 🔢 **5. Teclado Matricial 4x4**
+## 🌈 2.1 – Sensor de Cor – APDS9960
 
-| Tipo    | Pinos | ESP32                          |
-| ------- | ----- | ------------------------------ |
-| Linhas  | 4     | GPIO32, GPIO33, GPIO25, GPIO26 |
-| Colunas | 4     | GPIO27, GPIO17, GPIO12, GPIO13 |
-| VCC     | 3V3   |                                |
-| GND     | GND   |                                |
-
->
+| Pino do sensor | ESP32  |
+| -------------- | ------ |
+| SDA            | GPIO21 |
+| SCL            | GPIO22 |
+| VCC            | 3V3    |
+| GND            | GND    |
 
 ---
 
-### 💧 **6. Sensor DHT22 (Umidade e Temperatura)**
+## ✋ 2.2 – Sensor de Gestos – APDS9960
 
-| Pino do sensor | ESP32  | Observação          |
-| -------------- | ------ | ------------------- |
-| DATA           | GPIO17 | Comunicação digital |
-| VCC            | 3V3    | Alimentação         |
-| GND            | GND    | Terra               |
-
->
-
----
-
-### ⚙️ **7. Sensor de Velocidade / Detecção**
-
-| Pino do sensor     | ESP32  |
-| ------------------ | ------ |
-| D0 (saída digital) | GPIO21 |
-| VCC                | 3V3    |
-| GND                | GND    |
-
->
+| Pino do sensor | ESP32  |
+| -------------- | ------ |
+| SDA            | GPIO21 |
+| SCL            | GPIO22 |
+| INT            | GPIO33 |
+| VCC            | 3V3    |
+| GND            | GND    |
 
 ---
 
-### 🔌 **8. Módulo Relé**
+## 📡 2.3 – Sensor Ultrassônico (HC-SR04)
 
-| Pino do módulo | ESP32  | Observação       |
-| -------------- | ------ | ---------------- |
-| IN             | GPIO17 | Controle do relé |
-| VCC            | 5V     | Alimentação      |
-| GND            | GND    | Terra            |
-
->
-
----
-
-### 🌡️ **9. Sensor de Temperatura DS18B20**
-
-| Pino do sensor | ESP32                  | Observação            |
-| -------------- | ---------------------- | --------------------- |
-| DATA           | GPIO22                 | Comunicação OneWire   |
-| VCC            | 3V3                    | Alimentação           |
-| GND            | GND                    | Terra                 |
-| Resistor 4.7kΩ | Entre **GPIO22 e 3V3** | Pull-up obrigatório ✅ |
-
->
+| Pino | ESP32  |
+| ---- | ------ |
+| TRIG | GPIO12 |
+| ECHO | GPIO13 |
+| VCC  | 5V     |
+| GND  | GND    |
 
 ---
 
-## 📦 4️⃣ Bibliotecas Necessárias
+## 🎮 2.4 – Joystick Analógico
+
+| Pino | ESP32  |
+| ---- | ------ |
+| VRx  | GPIO25 |
+| VRy  | GPIO26 |
+| SW   | GPIO27 |
+| VCC  | 3V3    |
+| GND  | GND    |
+
+---
+
+## 🔢 2.5 – Teclado Matricial 4x4
+
+| Tipo    | Pinos usados                | ESP32                                |
+| ------- | --------------------------- | ------------------------------------ |
+| Linhas  | 4                           | GPIO32, GPIO33, GPIO25, GPIO26       |
+| Colunas | 4                           | GPIO27, GPIO17, GPIO12, GPIO13       |
+| VCC     | —                           | 3V3                                   |
+| GND     | —                           | GND                                   |
+
+---
+
+## 💧 2.6 – Sensor DHT22
+
+| Pino | ESP32  |
+| ---- | ------ |
+| DATA | GPIO17 |
+| VCC  | 3V3    |
+| GND  | GND    |
+
+---
+
+## ⚙️ 2.7 – Sensor de Velocidade / Encoder
+
+| Pino | ESP32  |
+| ---- | ------ |
+| D0   | GPIO21 |
+| VCC  | 3V3    |
+| GND  | GND    |
+
+---
+
+## 🔌 2.8 – Módulo Relé
+
+| Pino | ESP32  |
+| ---- | ------ |
+| IN   | GPIO17 |
+| VCC  | 5V     |
+| GND  | GND    |
+
+---
+
+## 🌡️ 2.9 – Sensor DS18B20
+
+| Pino            | ESP32  |
+| ---------------- | ------ |
+| DATA             | GPIO22 |
+| VCC              | 3V3    |
+| GND              | GND    |
+| Resistor 4.7kΩ   | Entre **GPIO22 e 3V3** |
+
+---
+
+# 📦 3️⃣ Bibliotecas Necessárias
 
 | Biblioteca                                       | Função            |
 | ------------------------------------------------ | ----------------- |
 | DHT sensor library                               | Sensor DHT22      |
 | Adafruit Unified Sensor                          | Dependência DHT   |
-| SparkFun APDS9960 RGB and Gesture Sensor Library | Sensor APDS9960   |
-| HCSR04 ultrasonic sensor                         | Sensor HC-SR04    |
+| SparkFun APDS9960 RGB and Gesture Sensor Library | APDS9960          |
+| HCSR04 ultrasonic sensor                         | Ultrassônico      |
+| Ultrasonic (para ESP32 físico)                   | Ultrassônico real |
 | Keypad                                           | Teclado matricial |
 | OneWire                                          | DS18B20           |
 | DallasTemperature                                | DS18B20           |
 
->
+---
 
-##
+# 📘 4️⃣ Observações Importantes
 
+- O `SENSOR_MODE` controla qual sensor **ou modo de trabalho** está ativo.
+- Nos modos `esp1`, `esp2`, `esp3` e `esp4`, o ESP simula fluxos completos do sistema do trabalho.
+- No Wokwi, o ultrassônico pode precisar da biblioteca `HCSR04.h`.
+- No hardware real, recomenda-se `Ultrasonic.h`.
+
+---
+
+# ✅ Fim do Guia
+
+Se quiser, posso gerar também uma versão em **PDF**.
