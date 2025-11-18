@@ -18,8 +18,8 @@ bool portaEstaAberta = false;
 unsigned long portaAbertaDesde = 0;
 
 // CONFIG
-const char* WIFI_SSID = "AndroidAP";
-const char* WIFI_PASS = "renan123";
+const char* WIFI_SSID = "Wokwi-GUEST";
+const char* WIFI_PASS = "";
 
 String API_URL = "https://api-cogr.onrender.com/readings";
 String API_VALIDATE = "https://api-cogr.onrender.com/auth/validate";
@@ -36,8 +36,8 @@ String ID_SERVO            = "cac9f30e-243a-4feb-87ae-67c98f7c16da";
 String ID_JOYSTICK         = "10289229-43b3-4db1-9580-63b5b76e4465";
 String ID_TECLADO          = "9dc544ee-36bd-4a52-a69a-f4cf8cffe578";
 
-// SELETOR DE MODO 
-#define SENSOR_MODE "esp1"
+// SELETOR DE MODO
+#define SENSOR_MODE "esp4"
 
 // ======== FUNÇÃO HTTP PARA RENDER ========
 void enviarParaAPI(String json) {
@@ -423,11 +423,23 @@ void loopESP2() {
   // ====================================================
   // ALERTA SE PORTA ABERTA POR >5s
   // ====================================================
+// ALERTA SE PORTA ABERTA POR >5s
   if (portaEstaAberta && (millis() - portaAbertaDesde > 5000)) {
-    Serial.println("⚠️ Porta aberta por tempo excessivo!");
-    digitalWrite(LED_VERDE, HIGH);
-    digitalWrite(LED_VERMELHO, HIGH);
+
+      Serial.println("⚠️ Porta aberta por tempo excessivo!");
+
+      // Enviar evento para o ESP4 via API
+      String json = "{";
+      json += "\"componentId\":\"" + ID_VELOCIDADE + "\",";
+      json += "\"data\":\"{\\\"status\\\":\\\"porta_aberta_tempo_excedido\\\"}\"";
+      json += "}";
+
+      enviarParaAPI(json);
+
+      // Evita enviar várias vezes — reiniciar contador
+      portaAbertaDesde = millis() + 999999;
   }
+
 
   delay(200);
 }
@@ -523,15 +535,19 @@ String extrairUltimoObjeto(String json) {
 // ======================================================
 // ====================== ESP4 LOOP =====================
 // ======================================================
-void loopESP4() {
+// ====================== ESP4 LOOP =====================
+// ====================== ESP4 LOOP =====================
+unsigned long ledTimer = 0;
+bool ledAtivo = false;
+String ultimoEstado = "nenhum";
 
-  apagarTodosLeds();
+void loopESP4() {
 
   HTTPClient http;
 
-  // ===========================================================
-  // 1) TEMPERATURA
-  // ===========================================================
+  // ======================================================
+  // 1) TEMPERATURA (alerta amarelo independente)
+  // ======================================================
   String urlTemp = "https://api-cogr.onrender.com/readings?componentId=" + ID_TEMP_DS18B20;
 
   http.begin(urlTemp);
@@ -539,29 +555,27 @@ void loopESP4() {
   String respTemp = http.getString();
   http.end();
 
-  Serial.println("📡 ESP4 TEMP RAW:");
-  Serial.println(respTemp);
-
   String lastTempEntry = pegarUltimoRegistroComponente(respTemp, ID_TEMP_DS18B20);
 
-  Serial.println("📦 Última entrada TEMP filtrada:");
-  Serial.println(lastTempEntry);
+  bool alertaTemp = false;
 
-  float temperatura = extrairTemperatura(lastTempEntry);
+  if (lastTempEntry.indexOf("temp_alta") >= 0) {
+      alertaTemp = true;
+  } else {
+      float temperatura = extrairTemperatura(lastTempEntry);
+      if (temperatura > 30.0) alertaTemp = true;
+  }
 
-  Serial.print("🌡 Temp atual: ");
-  Serial.println(temperatura);
-
-  if (temperatura > 30.0) {
-    Serial.println("🟡 ALERTA: Temperatura alta!");
-    digitalWrite(LED_AMARELO, HIGH);
+  if (alertaTemp) {
+      digitalWrite(LED_AMARELO, HIGH);
+  } else {
+      digitalWrite(LED_AMARELO, LOW);
   }
 
 
-
-  // ===========================================================
-  // 2) STATUS DO TECLADO
-  // ===========================================================
+  // ======================================================
+  // 2) ACESSO (verde/vermelho)
+  // ======================================================
   String urlAcc = "https://api-cogr.onrender.com/readings?componentId=" + ID_TECLADO;
 
   http.begin(urlAcc);
@@ -569,28 +583,99 @@ void loopESP4() {
   String respAcc = http.getString();
   http.end();
 
-  Serial.println("📡 ESP4 ACESSO RAW:");
-  Serial.println(respAcc);
-
   String lastAccEntry = pegarUltimoRegistroComponente(respAcc, ID_TECLADO);
-
-  Serial.println("📦 Última entrada ACESSO filtrada:");
-  Serial.println(lastAccEntry);
 
   bool acessoLiberado = lastAccEntry.indexOf("acesso_liberado") >= 0;
   bool acessoNegado   = lastAccEntry.indexOf("acesso_negado") >= 0;
 
-  if (acessoNegado) {
-    Serial.println("🔴 ESP4 → ACESSO NEGADO");
-    digitalWrite(LED_VERMELHO, HIGH);
-  }
-  else if (acessoLiberado) {
-    Serial.println("🟢 ESP4 → ACESSO LIBERADO");
-    digitalWrite(LED_VERDE, HIGH);
+
+  // ======================================================
+  // 3) EVENTO DO ENCODER (porta aberta tempo excedido)
+  // ======================================================
+  String urlEnc = "https://api-cogr.onrender.com/readings?componentId=" + ID_VELOCIDADE;
+
+  http.begin(urlEnc);
+  http.GET();
+  String respEnc = http.getString();
+  http.end();
+
+  String lastEncEntry = pegarUltimoRegistroComponente(respEnc, ID_VELOCIDADE);
+
+  bool portaTempoExcedido = lastEncEntry.indexOf("porta_aberta_tempo_excedido") >= 0;
+
+
+  // ======================================================
+  // 4) Determinar estado atual (qual evento deve acender LED)
+  // ======================================================
+  String estadoAtual = "nenhum";
+
+  if (acessoLiberado) estadoAtual = "acesso_liberado";
+  else if (acessoNegado) estadoAtual = "acesso_negado";
+  else if (portaTempoExcedido) estadoAtual = "porta_aberta_tempo_excedido";
+
+
+  // ======================================================
+  // 5) Só acende LED se:
+  //     - nenhum LED temporal está ativo
+  //     - o estado mudou desde a última verificação
+  // ======================================================
+  if (!ledAtivo && estadoAtual != ultimoEstado) {
+
+    // Apaga somente verde/vermelho antes de acender o novo
+    digitalWrite(LED_VERDE, LOW);
+    digitalWrite(LED_VERMELHO, LOW);
+
+    if (estadoAtual == "acesso_liberado") {
+      digitalWrite(LED_VERDE, HIGH);
+      ledAtivo = true;
+      ultimoEstado = estadoAtual;
+      ledTimer = millis();
+    }
+    else if (estadoAtual == "acesso_negado") {
+      digitalWrite(LED_VERMELHO, HIGH);
+      ledAtivo = true;
+      ultimoEstado = estadoAtual;
+      ledTimer = millis();
+    }
+    else if (estadoAtual == "porta_aberta_tempo_excedido") {
+      // ALERTA DO ENCODER → acende os dois
+      digitalWrite(LED_VERDE, HIGH);
+      digitalWrite(LED_VERMELHO, HIGH);
+      ledAtivo = true;
+      ultimoEstado = estadoAtual;
+      ledTimer = millis();
+    }
   }
 
-  delay(1000);
+
+  // ======================================================
+  // 6) Reset dos LEDs temporais após 3 segundos
+  // ======================================================
+  if (ledAtivo && millis() - ledTimer > 3000) {
+
+      // Apaga somente verde/vermelho
+      digitalWrite(LED_VERDE, LOW);
+      digitalWrite(LED_VERMELHO, LOW);
+
+      ledAtivo = false;
+
+      // Envia reset apenas para eventos do teclado (mantido)
+      String json = "{";
+      json += "\"componentId\":\"" + ID_TECLADO + "\",";
+      json += "\"data\":\"{\\\"status\\\":\\\"led_resetado\\\"}\"";
+      json += "}";
+      enviarParaAPI(json);
+
+      ultimoEstado = "led_resetado";
+
+      Serial.println("🔄 ESP4 → LED resetado após 3s");
+  }
+
+  delay(200);
 }
+
+
+
 
 
 
