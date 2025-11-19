@@ -18,8 +18,8 @@ bool portaEstaAberta = false;
 unsigned long portaAbertaDesde = 0;
 
 // CONFIG
-const char* WIFI_SSID = "Wokwi-GUEST";
-const char* WIFI_PASS = "";
+const char* WIFI_SSID = "AndroidAP";
+const char* WIFI_PASS = "renan123";
 
 String API_URL = "https://api-cogr.onrender.com/readings";
 String API_VALIDATE = "https://api-cogr.onrender.com/auth/validate";
@@ -39,7 +39,7 @@ String ID_TECLADO          = "9dc544ee-36bd-4a52-a69a-f4cf8cffe578";
 // SELETOR DE MODO
 #define SENSOR_MODE "esp4"
 
-// ======== FUNÇÃO HTTP PARA RENDER ========
+// FUNÇÃO HTTP PARA RENDER
 void enviarParaAPI(String json) {
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("⚠️ WiFi OFF — reconectando...");
@@ -68,7 +68,7 @@ void apagarTodosLeds() {
 }
 
 
-// ======== APDS9960 ========
+// APDS9960 
 #define SDA_PIN 21
 #define SCL_PIN 22
 #define APDS9960_INT 33
@@ -77,14 +77,14 @@ uint16_t ambient_light, red_light, green_light, blue_light;
 int isr_flag = 0;
 void IRAM_ATTR interruptRoutine() { isr_flag = 1; }
 
-// ======== JOYSTICK ========
+// JOYSTICK 
 #define sensorPinX 25
 #define sensorPinY 26
 #define sensorPinButton 27
 struct button { byte pressed = 0; };
 struct analogJoy { short x, y; button button; };
 
-// ======== TECLADO ========
+// TECLADO 
 const byte LINHAS = 4, COLUNAS = 4;
 const char TECLAS[LINHAS][COLUNAS] = {
   {'1','2','3','A'},
@@ -96,42 +96,35 @@ byte PIN_LINHAS[LINHAS] = {32, 33, 25, 26};
 byte PIN_COLUNAS[COLUNAS] = {2, 15, 13, 12};
 Keypad teclado = Keypad(makeKeymap(TECLAS), PIN_LINHAS, PIN_COLUNAS, LINHAS, COLUNAS);
 
-// ======== DHT22 ========
+// DHT22 
 #define DHTPIN 12
 #define DHTTYPE DHT22
 DHT dht(DHTPIN, DHTTYPE);
 
-// ======== VELOCIDADE ========
+// VELOCIDADE 
 #define sensorSpeedPin 13
 int countDeteccao = 0;
 
-// ======== RELÉ ========
+// RELÉ 
 #define pinRele 12
 
-// ======== VIBRAÇÃO ========
+// VIBRAÇÃO 
 #define pinVibracao 21
 
-// ======== TEMPERATURA DS18B20 ========
+// TEMPERATURA DS18B20 
 #define ONE_WIRE_BUS 22
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 
-// ======================================================
-// ========== VARIÁVEIS DO ESP1 (Senha) =================
-// ======================================================
+// VARIÁVEIS DO ESP1 (Senha)
 String senhaDigitada = "";
 bool capturando = false;
 
-// ======================================================
-// =========== FUNÇÃO VALIDAR SENHA VIA API ============
-// ======================================================
 int validarSenha(String senha) {
 
-  // 🔥🔥🔥 NOVO — remove o asterisco antes de enviar para a API
   if (senha.startsWith("*")) {
     senha = senha.substring(1);
   }
-  // 🔥🔥🔥 FIM DA ALTERAÇÃO
 
   HTTPClient http;
   http.begin(API_VALIDATE);
@@ -142,12 +135,12 @@ int validarSenha(String senha) {
 
   int code = http.POST(body);
   if (code <= 0) {
-    Serial.println("❌ Falha HTTP");
+    Serial.println("Falha HTTP");
     return -1;
   }
 
   String resposta = http.getString();
-  Serial.println("📡 Resposta validação: " + resposta);
+  Serial.println("Resposta validação: " + resposta);
 
   http.end();
 
@@ -155,9 +148,6 @@ int validarSenha(String senha) {
   return 0;
 }
 
-// ======================================================
-// ================ FEEDBACK DE VIBRAÇÃO ===============
-// ======================================================
 void vibrarCurto() {
   digitalWrite(pinVibracao, LOW);
   delay(1000);
@@ -170,9 +160,7 @@ void vibrarLongo() {
   digitalWrite(pinVibracao, HIGH);
 }
 
-// ======================================================
-// ======================== SETUP ========================
-// ======================================================
+// SETUP 
 void setup() {
   Serial.begin(115200);
   delay(300);
@@ -202,9 +190,7 @@ void setup() {
   }
 
 
-  // =============================================
   // Inicializar LEDs SOMENTE para o modo ESP4
-  // =============================================
   if (strcmp(SENSOR_MODE, "esp4") == 0) {
     pinMode(LED_VERDE, OUTPUT);
     pinMode(LED_AMARELO, OUTPUT);
@@ -217,9 +203,7 @@ void setup() {
 }
 
 
-// ======================================================
-// ========================= LOOP ========================
-// ======================================================
+// LOOP
 void loop() {
 
   if (strcmp(SENSOR_MODE, "esp1") == 0) loopESP1();
@@ -237,9 +221,7 @@ void loop() {
   else if (strcmp(SENSOR_MODE, "temperatura") == 0) lerTemperatura();
 }
 
-// ======================================================
-// ====================== ESP1 ==========================
-// ======================================================
+// ESP1
 void loopESP1() {
 
   char tecla = teclado.getKey();
@@ -261,9 +243,9 @@ void loopESP1() {
 
     int resultado = validarSenha(senhaDigitada);
 
-    // ===== REGISTRAR ESTADO NO /readings =====
+    // REGISTRAR ESTADO NO /readings
     if (resultado == 1) {
-      Serial.println("✔ ESP1 — Senha correta!");
+      Serial.println("ESP1 — Senha correta!");
 
       String json = "{";
       json += "\"componentId\":\"" + ID_TECLADO + "\",";
@@ -274,7 +256,7 @@ void loopESP1() {
       vibrarCurto();
 
     } else {
-      Serial.println("❌ ESP1 — Senha incorreta!");
+      Serial.println("ESP1 — Senha incorreta!");
 
       String json = "{";
       json += "\"componentId\":\"" + ID_TECLADO + "\",";
@@ -321,14 +303,9 @@ String pegarUltimoRegistroComponente(String json, String componentId) {
   return obj;
 }
 
-
-
-// ======================================================
-// FUNÇÃO PARA EXTRAIR TEMPERATURA DE QUALQUER FORMATO
-// ======================================================
 float extrairTemperatura(String jsonObj) {
 
-  // ----- Caso 1: formato {"t": 33.9, "h": ...}
+  // Caso 1: formato {"t": 33.9, "h": ...}
   int tIndex = jsonObj.indexOf("\"t\"");
   if (tIndex >= 0) {
     int start = jsonObj.indexOf(":", tIndex) + 1;
@@ -337,7 +314,7 @@ float extrairTemperatura(String jsonObj) {
     return jsonObj.substring(start, end).toFloat();
   }
 
-  // ----- Caso 2: formato {"temperature": 22.5, ...}
+  // Caso 2: formato {"temperature": 22.5, ...}
   int tempIndex = jsonObj.indexOf("\"temperature\"");
   if (tempIndex >= 0) {
     int start = jsonObj.indexOf(":", tempIndex) + 1;
@@ -350,10 +327,7 @@ float extrairTemperatura(String jsonObj) {
 }
 
 
-// ======================================================
-// ====================== ESP2 ==========================
-// ===== Relé + Encoder (porta) =========================
-// ======================================================
+// ESP2
 void loopESP2() {
 
   HTTPClient http;
@@ -373,9 +347,6 @@ void loopESP2() {
   bool acessoNegado   = lastAcc.indexOf("acesso_negado") >= 0;
 
 
-  // ====================================================
-  // RELÉ (usa pinRele - mesmo da função controlarRele)
-  // ====================================================
   if (acessoLiberado) {
     Serial.println("🟢 RELÉ ATIVADO");
     digitalWrite(pinRele, HIGH);  // ativa relé (invertido)
@@ -386,9 +357,6 @@ void loopESP2() {
   }
 
 
-  // ====================================================
-  // === ENCODER — mesmo comportamento de lerVelocidade ===
-  // ====================================================
   int leitura = digitalRead(sensorSpeedPin);
 
   if (leitura == HIGH) {
@@ -419,10 +387,6 @@ void loopESP2() {
     }
   }
 
-
-  // ====================================================
-  // ALERTA SE PORTA ABERTA POR >5s
-  // ====================================================
 // ALERTA SE PORTA ABERTA POR >5s
   if (portaEstaAberta && (millis() - portaAbertaDesde > 5000)) {
 
@@ -444,16 +408,7 @@ void loopESP2() {
   delay(200);
 }
 
-
-
-// ======================================================
-// ====================== ESP3 ==========================
-// ====== Temperatura e Umidade (DHT22) =================
-// ======================================================
-// ======================================================
-// ====================== ESP3 ==========================
-// ====== Temperatura e Umidade (DHT22) =================
-// ======================================================
+// ESP3
 void loopESP3() {
 
   float h = dht.readHumidity();
@@ -487,19 +442,7 @@ void loopESP3() {
   delay(1000);
 }
 
-
-
-// ======================================================
-// ====================== ESP4 ==========================
-// ========== Indicador com LEDs (verde, amarelo, vermelho)
-// ======================================================
-// ======================================================
-// ====================== ESP4 ==========================
-// ========== Indicador com LEDs (verde, amarelo, vermelho)
-// ======================================================
-// ---------------------------------------------------------
-// Função auxiliar para extrair o último objeto de um array
-// ---------------------------------------------------------
+// ESP4
 String extrairUltimoObjeto(String json) {
 
   int fim = json.lastIndexOf("}");        // último }
@@ -511,32 +454,7 @@ String extrairUltimoObjeto(String json) {
   return json.substring(inicio, fim + 1);
 }
 
-// ---------------------------------------------------------
-// LOOP ESP4 - LEDS DE AVALIAÇÃO
-// ---------------------------------------------------------
-// ==========================================================
-// FUNÇÃO PARA PEGAR O ÚLTIMO REGISTRO DO COMPONENTE CORRETO
-// ==========================================================
-
-// ======================================================
-// ====================== ESP4 ==========================
-// ========== Indicador com LEDs (verde, amarelo, vermelho)
-// ======================================================
-// ==========================================================
-// FUNÇÃO PARA PEGAR O ÚLTIMO REGISTRO DO COMPONENTE CORRETO
-// ==========================================================
-// ==========================================================
-// FUNÇÃO PARA PEGAR O ÚLTIMO REGISTRO DO COMPONENTE CORRETO
-// ==========================================================
-
-
-
-
-// ======================================================
-// ====================== ESP4 LOOP =====================
-// ======================================================
-// ====================== ESP4 LOOP =====================
-// ====================== ESP4 LOOP =====================
+// ESP4
 unsigned long ledTimer = 0;
 bool ledAtivo = false;
 String ultimoEstado = "nenhum";
@@ -545,9 +463,7 @@ void loopESP4() {
 
   HTTPClient http;
 
-  // ======================================================
-  // 1) TEMPERATURA (alerta amarelo independente)
-  // ======================================================
+  // TEMPERATURA (alerta amarelo)
   String urlTemp = "https://api-cogr.onrender.com/readings?componentId=" + ID_TEMP_DS18B20;
 
   http.begin(urlTemp);
@@ -573,9 +489,7 @@ void loopESP4() {
   }
 
 
-  // ======================================================
-  // 2) ACESSO (verde/vermelho)
-  // ======================================================
+  // ACESSO (verde/vermelho)
   String urlAcc = "https://api-cogr.onrender.com/readings?componentId=" + ID_TECLADO;
 
   http.begin(urlAcc);
@@ -589,9 +503,7 @@ void loopESP4() {
   bool acessoNegado   = lastAccEntry.indexOf("acesso_negado") >= 0;
 
 
-  // ======================================================
-  // 3) EVENTO DO ENCODER (porta aberta tempo excedido)
-  // ======================================================
+  // EVENTO DO ENCODER (porta aberta tempo excedido)
   String urlEnc = "https://api-cogr.onrender.com/readings?componentId=" + ID_VELOCIDADE;
 
   http.begin(urlEnc);
@@ -604,9 +516,7 @@ void loopESP4() {
   bool portaTempoExcedido = lastEncEntry.indexOf("porta_aberta_tempo_excedido") >= 0;
 
 
-  // ======================================================
-  // 4) Determinar estado atual (qual evento deve acender LED)
-  // ======================================================
+  // Determinar estado atual (qual evento deve acender LED)
   String estadoAtual = "nenhum";
 
   if (acessoLiberado) estadoAtual = "acesso_liberado";
@@ -614,11 +524,9 @@ void loopESP4() {
   else if (portaTempoExcedido) estadoAtual = "porta_aberta_tempo_excedido";
 
 
-  // ======================================================
-  // 5) Só acende LED se:
+  // Só acende LED se:
   //     - nenhum LED temporal está ativo
   //     - o estado mudou desde a última verificação
-  // ======================================================
   if (!ledAtivo && estadoAtual != ultimoEstado) {
 
     // Apaga somente verde/vermelho antes de acender o novo
@@ -647,10 +555,7 @@ void loopESP4() {
     }
   }
 
-
-  // ======================================================
-  // 6) Reset dos LEDs temporais após 3 segundos
-  // ======================================================
+  // Reset dos LEDs temporais após 3 segundos
   if (ledAtivo && millis() - ledTimer > 3000) {
 
       // Apaga somente verde/vermelho
@@ -676,17 +581,8 @@ void loopESP4() {
 
 
 
-
-
-
-
-
-
-// ======================================================
-// ==================== SENSORES ========================
-// ======================================================
-
-// === TECLADO ===
+// SENSORES
+// TECLADO
 void lerTeclado() {
   char tecla = teclado.getKey();
   if (tecla) {
@@ -701,7 +597,7 @@ void lerTeclado() {
   }
 }
 
-// === COR (APDS) ===
+// COR (APDS)
 void lerCor() {
   apds.readAmbientLight(ambient_light);
   apds.readRedLight(red_light);
@@ -721,7 +617,7 @@ void lerCor() {
   enviarParaAPI(json);
 }
 
-// === GESTOS ===
+// GESTOS
 void lerGestos() {
   if (apds.isGestureAvailable()) {
     int g = apds.readGesture();
@@ -740,7 +636,7 @@ void lerGestos() {
   }
 }
 
-// === JOYSTICK ===
+// JOYSTICK 
 void lerJoystick() {
   int x = map(analogRead(sensorPinX), 0, 4095, -128, 127);
   int y = map(analogRead(sensorPinY), 0, 4095, -128, 127);
@@ -753,7 +649,7 @@ void lerJoystick() {
   enviarParaAPI(json);
 }
 
-// === DHT22 ===
+// DHT22 
 void lerDHT() {
   float h = dht.readHumidity();
   float t = dht.readTemperature();
@@ -768,7 +664,7 @@ void lerDHT() {
   enviarParaAPI(json);
 }
 
-// === VELOCIDADE ===
+// VELOCIDADE
 void lerVelocidade() {
   if (digitalRead(sensorSpeedPin) == HIGH) {
     countDeteccao++;
@@ -784,7 +680,7 @@ void lerVelocidade() {
   }
 }
 
-// === RELÉ ===
+// RELÉ 
 void controlarRele() {
   digitalWrite(pinRele, LOW);
 
@@ -800,7 +696,7 @@ void controlarRele() {
   delay(2000);
 }
 
-// === VIBRAÇÃO ===
+// VIBRAÇÃO 
 void controlarVibracao() {
   digitalWrite(pinVibracao, LOW);
   enviarParaAPI("{\"componentId\":\"" + ID_SERVO + "\",\"value\":\"ON\"}");
@@ -811,7 +707,7 @@ void controlarVibracao() {
   delay(2000);
 }
 
-// === DS18B20 ===
+// DS18B20 
 void lerTemperatura() {
   sensors.requestTemperatures();
   float temp = sensors.getTempCByIndex(0);
