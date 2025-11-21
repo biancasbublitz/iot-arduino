@@ -18,8 +18,8 @@ bool portaEstaAberta = false;
 unsigned long portaAbertaDesde = 0;
 
 // CONFIG
-const char* WIFI_SSID = "AndroidAP";
-const char* WIFI_PASS = "renan123";
+const char* WIFI_SSID = "iot2022";
+const char* WIFI_PASS = "S3nhab0@";
 
 String API_URL = "https://api-cogr.onrender.com/readings";
 String API_VALIDATE = "https://api-cogr.onrender.com/auth/validate";
@@ -97,8 +97,8 @@ byte PIN_COLUNAS[COLUNAS] = {2, 15, 13, 12};
 Keypad teclado = Keypad(makeKeymap(TECLAS), PIN_LINHAS, PIN_COLUNAS, LINHAS, COLUNAS);
 
 // DHT22 
-#define DHTPIN 12
-#define DHTTYPE DHT22
+#define DHTPIN 15
+#define DHTTYPE DHT11
 DHT dht(DHTPIN, DHTTYPE);
 
 // VELOCIDADE 
@@ -149,21 +149,23 @@ int validarSenha(String senha) {
 }
 
 void vibrarCurto() {
-  digitalWrite(pinVibracao, LOW);
-  delay(1000);
   digitalWrite(pinVibracao, HIGH);
+  delay(1000);
+  digitalWrite(pinVibracao, LOW);
 }
 
 void vibrarLongo() {
-  digitalWrite(pinVibracao, LOW);
-  delay(3000);
   digitalWrite(pinVibracao, HIGH);
+  delay(3000);
+  digitalWrite(pinVibracao, LOW);
 }
 
 // SETUP 
 void setup() {
   Serial.begin(115200);
   delay(300);
+
+  dht.begin();
 
   pinMode(pinVibracao, OUTPUT);
   //digitalWrite(pinVibracao, HIGH);
@@ -427,7 +429,7 @@ void loopESP3() {
   enviarParaAPI(json);
 
   // Limite no Arduino
-  const float LIMITE = 30.0;
+  const float LIMITE = 29.0;
 
   if (t > LIMITE) {
     Serial.println("🔥 ESP3 — Temperatura alta! Registrando em /readings...");
@@ -441,6 +443,7 @@ void loopESP3() {
 
   delay(1000);
 }
+
 
 // ESP4
 String extrairUltimoObjeto(String json) {
