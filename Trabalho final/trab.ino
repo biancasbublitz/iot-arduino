@@ -466,9 +466,7 @@ void loopESP4() {
 
   HTTPClient http;
 
-  // TEMPERATURA (alerta amarelo)
   String urlTemp = "https://api-cogr.onrender.com/readings?componentId=" + ID_TEMP_DS18B20;
-
   http.begin(urlTemp);
   http.GET();
   String respTemp = http.getString();
@@ -485,16 +483,11 @@ void loopESP4() {
       if (temperatura > 30.0) alertaTemp = true;
   }
 
-  if (alertaTemp) {
-      digitalWrite(LED_AMARELO, HIGH);
-  } else {
-      digitalWrite(LED_AMARELO, LOW);
-  }
+  if (alertaTemp) digitalWrite(LED_AMARELO, HIGH);
+  else digitalWrite(LED_AMARELO, LOW);
 
 
-  // ACESSO (verde/vermelho)
   String urlAcc = "https://api-cogr.onrender.com/readings?componentId=" + ID_TECLADO;
-
   http.begin(urlAcc);
   http.GET();
   String respAcc = http.getString();
@@ -506,9 +499,7 @@ void loopESP4() {
   bool acessoNegado   = lastAccEntry.indexOf("acesso_negado") >= 0;
 
 
-  // EVENTO DO ENCODER (porta aberta tempo excedido)
   String urlEnc = "https://api-cogr.onrender.com/readings?componentId=" + ID_VELOCIDADE;
-
   http.begin(urlEnc);
   http.GET();
   String respEnc = http.getString();
@@ -519,7 +510,6 @@ void loopESP4() {
   bool portaTempoExcedido = lastEncEntry.indexOf("porta_aberta_tempo_excedido") >= 0;
 
 
-  // Determinar estado atual (qual evento deve acender LED)
   String estadoAtual = "nenhum";
 
   if (acessoLiberado) estadoAtual = "acesso_liberado";
@@ -527,12 +517,10 @@ void loopESP4() {
   else if (portaTempoExcedido) estadoAtual = "porta_aberta_tempo_excedido";
 
 
-  // Só acende LED se:
-  //     - nenhum LED temporal está ativo
-  //     - o estado mudou desde a última verificação
-  if (!ledAtivo && estadoAtual != ultimoEstado) {
-
-    // Apaga somente verde/vermelho antes de acender o novo
+  if (!ledAtivo 
+      && estadoAtual != ultimoEstado
+      && estadoAtual != "led_resetado")
+  {
     digitalWrite(LED_VERDE, LOW);
     digitalWrite(LED_VERMELHO, LOW);
 
@@ -549,7 +537,6 @@ void loopESP4() {
       ledTimer = millis();
     }
     else if (estadoAtual == "porta_aberta_tempo_excedido") {
-      // ALERTA DO ENCODER → acende os dois
       digitalWrite(LED_VERDE, HIGH);
       digitalWrite(LED_VERMELHO, HIGH);
       ledAtivo = true;
@@ -558,20 +545,23 @@ void loopESP4() {
     }
   }
 
-  // Reset dos LEDs temporais após 3 segundos
   if (ledAtivo && millis() - ledTimer > 3000) {
 
-      // Apaga somente verde/vermelho
       digitalWrite(LED_VERDE, LOW);
       digitalWrite(LED_VERMELHO, LOW);
 
       ledAtivo = false;
 
-      // Envia reset apenas para eventos do teclado (mantido)
+      String comp;
+
+      if (ultimoEstado == "porta_aberta_tempo_excedido") comp = ID_VELOCIDADE;
+      else comp = ID_TECLADO;
+
       String json = "{";
-      json += "\"componentId\":\"" + ID_TECLADO + "\",";
+      json += "\"componentId\":\"" + comp + "\",";
       json += "\"data\":\"{\\\"status\\\":\\\"led_resetado\\\"}\"";
       json += "}";
+
       enviarParaAPI(json);
 
       ultimoEstado = "led_resetado";
@@ -581,6 +571,7 @@ void loopESP4() {
 
   delay(200);
 }
+
 
 
 
